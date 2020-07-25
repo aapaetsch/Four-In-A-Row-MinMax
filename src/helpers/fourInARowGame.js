@@ -10,6 +10,7 @@ export default class Four_In_A_Row{
         this.previousYX = null;
     }
 
+
     resetGame() {
         this.player = 1;
         this.board = nj.zeros(this.boardSize, 'int32');
@@ -19,7 +20,7 @@ export default class Four_In_A_Row{
     }
 
     copyState() {
-        var cBoard = new Four_In_A_Row();
+        let cBoard = new Four_In_A_Row();
         cBoard.setCurrentPlayer(this.player);
         cBoard.isWin = this.isWin;
         cBoard.winner = this.winner;
@@ -28,11 +29,81 @@ export default class Four_In_A_Row{
         return cBoard;
     }
 
-    checkWin(){
-        if (){
+    checkWin(x, y){
 
+        if (this.checkInRow( this.board[y] )){
+            return [true, 'horizontal'];
+
+        } else if (this.checkInRow( this.board.slice([null,x]) )){
+            return [true, 'vertical'];
+            //todo: fix diagonal logic...
+        } else if (this.checkInRow( nj.diag(this.board[x - y]) )){
+            return [true, 'diagonal Rl'];
+
+        //} //else if (this.checkInRow()){
+        //     //TODO: Add Board Flip
+        //
+        } else {
+            return[false, null];
         }
     }
+    checkInRow = (arr) => {
+        let inRow = 0;
+
+        for (let i = 0; i < arr.length; i++){
+
+            if (arr[i] === this.player){
+                inRow += 1;
+            } else {
+                inRow = 0;
+            }
+
+            if (inRow === 4){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    playMove(move){
+        for (let i = this.boardSize[1] - 1; i >= 0; i--){
+            if (this.board.get(i, move) === 0){
+                this.board.set(i, move, this.player);
+                this.previousYX = [i, move];
+                return [i, move];
+            }
+        }
+    }
+
+    turn(move){
+        try{
+            move = Number(move);
+        } catch(error){
+            return false;
+        }
+
+        if (move in this.getValidMoves()){
+
+            const m = this.playMove(move);
+            const winOutcome = this.checkWin(m[1],m[0]);
+            this.isWin = winOutcome[0];
+            this.winType = winOutcome[1];
+
+            if (this.isWin){
+                this.winner = this.player;
+            }
+
+            this.player = (1 + 2 - this.player);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    getWin(){
+        return this.isWin;
+    }
+
     getWinType(){
         return this.winType;
     }
