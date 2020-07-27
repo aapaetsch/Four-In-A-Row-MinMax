@@ -40,16 +40,17 @@ export default class App extends Component {
     render(){
         return (
             <div className="App">
-                <Router>
-                    <Switch>
-                        <Route exact path='/'
-                               render={(props) => <Landing setMode={this.setMode}/>}/>
-                        <PublicRoute
-                            path='/fourinarow'
-                            component={FourInARow}
-                            mode={this.state.mode}/>
-                    </Switch>
-                </Router>
+                {/*<Router>*/}
+                {/*    <Switch>*/}
+                {/*        <Route exact path='/'*/}
+                {/*               render={(props) => <Landing setMode={this.setMode}/>}/>*/}
+                {/*        <PublicRoute*/}
+                {/*            path='/fourinarow'*/}
+                {/*            component={FourInARow}*/}
+                {/*            mode={this.state.mode}/>*/}
+                {/*    </Switch>*/}
+                {/*</Router>*/}
+                <FourInARow/>
                 {/*<FourInARow mode={this.state.mode}/>*/}
             </div>
         );

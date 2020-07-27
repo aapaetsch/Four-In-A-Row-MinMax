@@ -1,57 +1,49 @@
-import React, { Component } from 'react';
-import {Card } from 'antd';
-import Four_In_A_Row from "../helpers/fourInARowGame";
-import Animation from "../Components/gameBoard";
-import './gameBoard.png';
+import React, { Component, createRef } from 'react';
+import {Card, Button, Col, Row, Modal} from 'antd';
+import Connect4Settings from "../Components/fourInARowSettings";
+import FourInARowGame from "../Components/fourInARowGame";
 import 'antd/dist/antd.css';
-
-let parse = require("html-react-parser");
-
 
 export default class FourInARow extends Component {
     constructor(props){
         super(props);
         this.state = {
-            fourInARowGame: new Four_In_A_Row(),
+            gutterSize: [8,20],
         }
-    }
-    componentDidMount(){
-        console.log(this.props);
-        const moveScores = require('../helpers/scores.json');
-        this.renderGame();
-    }
-
-    componentDidUpdate(){
-        this.renderGame();
-    }
-
-    renderGame = () => {
-        console.log(this.state.fourInARowGame.board);
-        let myGameGUI = '<tbody>';
-        for (let i = 0; i < this.state.fourInARowGame.boardSize[0]; i++){
-            myGameGUI += '<tr>';
-            for (let j = 0; j < this.state.fourInARowGame.boardSize[1]; j++){
-                myGameGUI += '<td id=' + j.toString() + '><img src="./gameBoard.png" alt="" height=100 width=100 /></td>';
-            }
-            myGameGUI += '</tr>';
-        }
-        myGameGUI += '</tbody>';
-        return myGameGUI;
+        this.gameRef = createRef();
     }
 
 
-
-
+    setGameSettings = (values) =>{
+        this.gameRef.current.newGame(values);
+    }
 
     render() {
+
         return (
             <div className='mainDiv'>
-                <Card title='Four In A Row!' className='verticalCenter'>
-                    <table id='myGame'>
-                        {parse(this.renderGame())}
-                    </table>
-                    {/*<Animation board={this.state.fourInARowGame.board}/>*/}
-                </Card>
+                <br/><br/><br/>
+                <Row
+                    justify='center'
+                    gutter={this.state.gutterSize}
+                    align='middle'
+                >
+                    <Col className='gutter-row' span={6}>
+                        <Card title='Game Settings'>
+                            <Connect4Settings startGame={this.setGameSettings} />
+                        </Card>
+                    </Col>
+                    <Col className='gutter-row' span={10}>
+                        <FourInARowGame ref={this.gameRef}/>
+                    </Col>
+                    <Col className='gutter-row' span={6}>
+                        <Card title='Computer Decisions?'>
+                            <Button>
+                                hello world
+                            </Button>
+                        </Card>
+                    </Col>
+                </Row>
             </div>
         );
     }

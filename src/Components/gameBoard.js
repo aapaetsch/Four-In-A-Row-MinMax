@@ -1,106 +1,45 @@
 import React, { Component } from 'react';
+import emptySquare from '../Images/boardSquareEmpty.jpeg';
+import p1Square from '../Images/boardSquareP1.jpeg';
+import p2Square from '../Images/boardSquareP2.jpeg';
 
-// export default class GameBoard extends Component {
-//     constructor(props) {
-//         super(props);
-//     }
-//
-//
-//     render(){
-//         return (
-//             <canvas id='myGameBoard' width='300' height='300'/>
-//         );
-//     }
-// }
-
-
-
-export default class Animation extends React.Component {
+export default class GameBoard extends Component {
     constructor(props) {
         super(props);
-        this.state = { mouseX: 0, mouseY: 0 };
-        this.updateAnimationState = this.updateAnimationState.bind(this);
     }
 
-    componentDidMount() {
-        this.rAF = requestAnimationFrame(this.updateAnimationState);
-
+    shouldComponentUpdate(nextProps){
+        return this.props.currentPlayer !== nextProps.currentPlayer;
     }
 
-    updateAnimationState() {
-        // this.setState(prevState => ({ angle: prevState.angle + 1 }));
-        this.setState({board: this.props.board });
-        this.rAF = requestAnimationFrame(this.updateAnimationState);
-    }
-
-    componentWillUnmount() {
-        cancelAnimationFrame(this.rAF);
-    }
-
-    render() {
-        return <Canvas board={this.state.board} />;
-    }
-}
-class Canvas extends Component {
-    constructor(props){
-        super(props);
-        this.image = `url(../Images/gameBoard.png)`;
-    }
-
-    saveContext = (ctx) => {
-        this.ctx = ctx;
-        this.width = this.ctx.canvas.width;
-        this.height = this.ctx.canvas.height;
-    }
-
-    componentDidUpdate() {
-        // this.ctx.clearRect(0,0, this.width, this.height);
-        // const { mousePos } = this.props.mouseXY;
-        const { boardPositions } = this.props.board
-        this.ctx.save();
-        this.ctx.beginPath();
-        // this.ctx.arc(mousePos[0], mousePos[1], 20, 0 , 2 * Math.PI, true);
-        for (let i = 0; i < 6; i++){
-            for (let j = 0; j < 7; j++){
-                this.ctx.rect()
-                this.ctx.addHitRegion({id: j});
-            }
+    decideSquareColor = (value) => {
+        if (value === 1){
+            return p1Square;
+        } else if (value === 2){
+            return p2Square;
+        } else {
+            return emptySquare;
         }
-        // this.ctx.fillStyle = '#cf1322';
-        this.ctx.fill();
-        // this.ctx.clearRect(0, 0, this.width, this.height);
-        // this.ctx.translate(this.width / 2, this.height / 2);
-        // this.ctx.rotate((angle * Math.PI) / 180);
-        // this.ctx.fillStyle = '#4397AC';
-        // this.ctx.fillRect(
-        //     -this.width / 4,
-        //     -this.height / 4,
-        //     this.width / 2,
-        //     this.height / 2
-        // );
-        this.ctx.restore();
     }
 
     render() {
-        return <PureCanvas contextRef={this.saveContext}/>
-    }
-
-
-}
-
-class PureCanvas extends Component {
-
-    shouldComponentUpdate(){
-        return false;
-    }
-
-    render() {
-        return (
-            <canvas
-                width='300'
-                height='300'
-                ref={ node => node ? this.props.contextRef(node.getContext('2d')): null}
-                />
+        let myGameBoard = [];
+        for (let i = 0; i < this.props.boardSize[0]; i++){
+            let row = [];
+            for (let j = 0; j < this.props.boardSize[1]; j++){
+                let imgSrc = this.decideSquareColor(this.props.game.board[i][j]);
+                row.push(<td id={j} onClick={this.props.handleClick}>
+                    <img id={j} src={imgSrc} alt="" height="63" width="70"/>
+                </td>);
+            }
+            myGameBoard.push(<tr>{row}</tr>);
+        }
+        return(
+            <table id='myGame' align="center" style={{backgroundColor: '#1e90ff'}}>
+                <tbody>
+                    {myGameBoard}
+                </tbody>
+            </table>
         );
     }
 }

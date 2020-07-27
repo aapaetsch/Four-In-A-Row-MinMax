@@ -1,17 +1,16 @@
 .mainDiv {
     background-color: #8c8c8c;
-    height: 100vh;
+    height: 101vh;
     text-align: center;
 }
-.verticalCenter {
-    display: inline-block;
-    margin: 0;
-    position: absolute;
-    top: 50%;
-    -ms-transform: translateX(-50%) translateY(-60%);
-    transform: translateX(-50%) translateY(-60%);
-}
 
-.emptyCircle {
-    background-image: url(gameBoard.png);
+
+.verticalCenter {
+    text-align: center;
+    /*display: inline-block;*/
+    /*margin: 0;*/
+    /*position: absolute;*/
+    /*top: 50%;*/
+    /*-ms-transform: translateX(-50%) translateY(-60%);*/
+    /*transform: translateX(-50%) translateY(-60%);*/
 }
