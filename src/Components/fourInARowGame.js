@@ -26,20 +26,43 @@ export default class FourInARowGame extends Component {
             gutterSize: [8,8]
         }
         this.fourInARowGame = new Four_In_A_Row(generateDiagonals(), generateAntiDiagonals());
+        this.gameBoardRef = createRef();
+        this.p1Data = [];
+        this.p2Data = [];
     }
 
     componentDidUpdate(){
         if (this.state.currentPlayer === 1 && this.state.player1 === 'cpu'){
+            message.loading({content: `Computer ${this.fourInARowGame.getCurrentPlayer()} is searching....`,
+                key:'search' }, 0);
             this.computerTurn(this.state.cpu1);
         } else if (this.state.currentPlayer === 2 && this.state.player2 === 'cpu'){
+            message.loading({content: `Computer ${this.fourInARowGame.getCurrentPlayer()} is searching....`,
+                key:'search' }, 0);
             this.computerTurn(this.state.cpu2);
         }
+    }
+
+    computerTurn = (cpu) => {
+        if (this.state.winner === null){
+            let searchData = cpu.findMove(this.fourInARowGame);
+            if (this.fourInARowGame.getCurrentPlayer() === 1){
+                this.p1Data.push(searchData[1]);
+            } else {
+                this.p2Data.push(searchData[1]);
+            }
+
+            let move = searchData[0];
+            this.setMove(move);
+        }
+
     }
 
     newGame = (values) => {
         this.setState({...values, currentPlayer: null, cpu1: null, cpu2: null}, () => {
             this.fourInARowGame.resetGame();
             console.log(this.state);
+            message.success("A new game has started!", 1);
             this.setState({cpu1: new FourInARow_AB(this.difficultyDepth(this.state.cpu1Diff), moveScores),
                 cpu2: new FourInARow_AB(this.difficultyDepth(this.state.cpu2Diff), moveScores)}, () => {
                 this.setState({currentPlayer: this.fourInARowGame.getCurrentPlayer(),
@@ -47,7 +70,6 @@ export default class FourInARowGame extends Component {
                 });
             });
         });
-        message.success("A new game has started!");
     }
 
     difficultyDepth = (val) =>{
@@ -56,7 +78,7 @@ export default class FourInARowGame extends Component {
         } else if (val === 'medium'){
             return 5;
         }
-        return 9;
+        return 11;
     }
 
     playATurn = (move) => {
@@ -66,18 +88,20 @@ export default class FourInARowGame extends Component {
         }
     }
 
-    computerTurn = async (cpu) => {
-        if (this.state.winner === null){
-            cpu.findMove(this.fourInARowGame).then( (move) => {
-                this.setMove(move);
-            });
-        }
-    }
-
     setMove = (move) =>{
         let isLegalTurn = this.fourInARowGame.turn(move);
+        console.log(isLegalTurn);
+
         if (isLegalTurn) {
+            if (this.fourInARowGame.getCurrentPlayer() === 1){
+                this.p2Data.push(move);
+            } else {
+                this.p1Data.push(move);
+            }
+            this.props.getLastMove(move);
             let isWin = this.fourInARowGame.getWinStatus();
+            this.gameBoardRef.current.setCurrentPlayer(this.fourInARowGame.getCurrentPlayer());
+
             if (isWin) {
                 this.setState({
                     gameClickable: false,
@@ -90,7 +114,20 @@ export default class FourInARowGame extends Component {
             this.setState({
                 currentPlayer: this.fourInARowGame.getCurrentPlayer(),
             });
+
+            if (this.fourInARowGame.getValidMoves().length === 0){
+                this.setState({gameClickable: false});
+                this.drawNotification();
+            }
         }
+    }
+
+    drawNotification = () => {
+        notification.error({
+           message: 'Draw',
+           description: 'There are no remaining moves.',
+            duration: null,
+        });
     }
 
     winNotification = () => {
@@ -119,13 +156,17 @@ export default class FourInARowGame extends Component {
         }
     }
 
+    sendMoveData = () => {
+        return [this.p1Data, this.p2Data];
+    }
+
     displayTurn = () => {
         let imgSrc = null;
         if (this.state.currentPlayer === 1){
             imgSrc = p1Token;
         } else if (this.state.currentPlayer === 2){
             imgSrc = p2Token;
-        } else { return <div/>}
+        } else { return <div><br/><br/></div>}
         return (
             <h2>
                 <img src={imgSrc} alt='' width='40' height='40'/>
@@ -140,7 +181,7 @@ export default class FourInARowGame extends Component {
             <Card title={'Four In A Row!'}>
                 {whosTurn}<br/>
                 <GameBoard
-                    currentPlayer={this.state.currentPlayer}
+                    ref={this.gameBoardRef}
                     game={this.fourInARowGame}
                     boardSize={this.fourInARowGame.boardSize}
                     handleClick={this.handleClick}/>

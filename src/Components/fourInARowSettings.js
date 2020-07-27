@@ -20,14 +20,13 @@ export default class Connect4Settings extends Component {
         this.props.startGame(values);
     }
     fieldChange = (value, e) =>{
-
         if (e[0].value === "cpu"){
             this.setState({showCPU1: true});
         } else {
             this.setState({showCPU1: false});
         }
 
-        if (e[2].value === 'cpu'){
+        if (e[3].value === 'cpu'){
             this.setState({showCPU2: true});
         } else {
             this.setState({showCPU2: false})
@@ -54,7 +53,8 @@ export default class Connect4Settings extends Component {
               {...formItemLayout}
               name='Four_In_A_Row_Settings'
               ref={this.formRef}
-              initialValues={{player1: 'human', player2: 'human', cpu1Diff: 'easy', cpu2Diff: 'easy'}}
+              initialValues={{player1: 'human', player2: 'human', cpu1Diff: 'easy', cpu2Diff: 'easy',
+                                cpu1Search: 'negaAB', cpu2Search: 'negaAB'}}
               onFinish={this.handleSubmit}
               onFinishFailed={onFinishFailed}
               onFieldsChange={this.fieldChange}
@@ -85,6 +85,14 @@ export default class Connect4Settings extends Component {
                       <Option value='hard'>Hard</Option>
                   </Select>
               </Form.Item>
+              <Form.Item name='cpu1Search'
+                         label='Cpu1 Algorithm: '>
+                  <Select disabled={!this.state.showCPU1}>
+                      <Option value='negaAB'>NegaMax AB</Option>
+                      <Option value='mcts' disabled>Monte Carlo Simulation</Option>
+                      <Option value='pureRL' disabled>Pure RL</Option>
+                  </Select>
+              </Form.Item>
               <br/><br/>
               <Form.Item name='player2'
                          label={<span>
@@ -104,7 +112,15 @@ export default class Connect4Settings extends Component {
                       <Option value='hard'>Hard</Option>
                   </Select>
               </Form.Item>
-
+              <Form.Item name='cpu2Search'
+                         label='Cpu2 Algorithm: '>
+                  <Select disabled={!this.state.showCPU2}>
+                      <Option value='negaAB'>NegaMax AB</Option>
+                      <Option value='mcts' disabled>Monte Carlo Simulation</Option>
+                      <Option value='pureRL' disabled>Pure RL</Option>
+                  </Select>
+              </Form.Item>
+              <br/>
           </Form>
         );
     }

@@ -78,22 +78,35 @@ export default class Four_In_A_Row{
 
     }
 
-    async copyState() {
+    copyState() {
         let cBoard = new Four_In_A_Row(this.diags, this.reverseDiags);
         cBoard.setCurrentPlayer(this.player);
         cBoard.isWin = this.isWin;
         cBoard.winner = this.winner;
         cBoard.winType = this.winType;
         cBoard.previousYX = this.previousYX;
-        cBoard.board = [...this.board];
+        cBoard.board = this.deepCopyBoard(this.board);
         return cBoard;
     }
 
-    async checkWin(x, y){
-        if (await this.checkInRow( this.board[y])){
+    deepCopyBoard = (board) => {
+        let newBoard = [];
+        for(let i = 0; i < board.length; i++){
+            let newRow = [];
+            for (let j = 0; j < board[i].length; j++){
+                newRow.push(board[i][j]);
+            }
+            newBoard.push(newRow);
+        }
+        return newBoard;
+    }
+
+
+    checkWin(x, y){
+        if ( this.checkInRow( this.board[y])){
             return [true, 'horizontal'];
 
-        } else if (await this.checkInRow( this.board.map( (val) =>{return val[x]}))){
+        } else if ( this.checkInRow( this.board.map( (val) =>{return val[x]}))){
             return [true, 'vertical'];
 
         } else {
@@ -104,7 +117,7 @@ export default class Four_In_A_Row{
                 this.diags[myLine.toString()].forEach( (position) => {
                     diag.push(this.board[position[0]][position[1]]);
                 });
-                if (await this.checkInRow(diag)){
+                if ( this.checkInRow(diag)){
                     return [true, 'Diagonal LR'];
                 }
             }
@@ -115,7 +128,7 @@ export default class Four_In_A_Row{
                 this.reverseDiags[reverseLine.toString()].forEach( (position) => {
                     reverseDiag.push(this.board[position[0]][position[1]]);
                 });
-                if (await this.checkInRow(reverseDiag)){
+                if ( this.checkInRow(reverseDiag)){
                     return [true, 'diagonal RL'];
                 }
             }
@@ -123,7 +136,7 @@ export default class Four_In_A_Row{
         }
     }
 
-    checkInRow = async (arr) => {
+    checkInRow = (arr) => {
         let inRow = 0;
         for (let i = 0; i < arr.length; i++){
 
@@ -140,7 +153,7 @@ export default class Four_In_A_Row{
         return false;
     }
 
-    async playMove(move){
+    playMove(move){
         for (let i = this.boardSize[0] - 1; i >= 0; i--){
             if (this.board[i][move] === 0){
                 this.setBoardPosition(i, move, this.player);
@@ -150,16 +163,25 @@ export default class Four_In_A_Row{
         }
     }
 
-    async turn(move){
+    turn(move){
         try{
             move = Number(move);
         } catch(error){
+            console.log(error);
             return false;
         }
-        if (move in await this.getValidMoves()){
+        let valid = false;
+        let validMoves = this.getValidMoves();
+        for (let i = 0; i < validMoves.length; i++){
+            if (validMoves[i] === move){
+                valid = true
+            }
+        }
 
-            const m = await this.playMove(move);
-            const winOutcome = await this.checkWin(m[1],m[0]);
+        if (valid){
+
+            const m = this.playMove(move);
+            const winOutcome = this.checkWin(m[1],m[0]);
             this.isWin = winOutcome[0];
             this.winType = winOutcome[1];
 
@@ -170,6 +192,7 @@ export default class Four_In_A_Row{
             this.player = (1 + 2 - this.player);
             return true;
         } else {
+            console.log(this.getValidMoves());
             return false;
         }
     }
@@ -186,7 +209,7 @@ export default class Four_In_A_Row{
         return this.isWin;
     }
 
-    async getValidMoves(){
+    getValidMoves(){
         let validMoves = [];
         for (let i = 0; i < this.boardSize[1]; i++){
             const move = this.board[0][i];
@@ -207,10 +230,6 @@ export default class Four_In_A_Row{
 
     setCurrentPlayer(player){
         this.player = player;
-    }
-
-    setBoard(board){
-        this.board = board;
     }
 
     setBoardPosition(y, x, state){

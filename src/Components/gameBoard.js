@@ -6,11 +6,18 @@ import p2Square from '../Images/boardSquareP2.jpeg';
 export default class GameBoard extends Component {
     constructor(props) {
         super(props);
+        this.state = {
+            currentPlayer: null,
+        }
     }
 
-    shouldComponentUpdate(nextProps){
-        return this.props.currentPlayer !== nextProps.currentPlayer;
+    setCurrentPlayer = (p) => {
+        this.setState({currentPlayer: p});
     }
+
+    // shouldComponentUpdate(nextProps){
+    //     return this.props.currentPlayer !== nextProps.currentPlayer;
+    // }
 
     decideSquareColor = (value) => {
         if (value === 1){

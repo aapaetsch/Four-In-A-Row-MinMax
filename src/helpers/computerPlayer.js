@@ -26,30 +26,37 @@ export default class FourInARow_AB{
         this.antiDiags = generateAntiDiagonals();
     }
 
-    async findMove(gameState){
-        console.log(this.diags)
+    findMove(gameState){
+        this.heuristic = {0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0};
+        this.saveData = {move: null, heuristic: null, moveData: [], board: null};
+
         this.tt = new TranspositionTable();
-        let rootState = await gameState.copyState();
+        let rootState = gameState.copyState();
         this.ComputerPlayer = rootState.getCurrentPlayer();
 
         this.zobristInit(rootState);
-        this.heuristic = {0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0};
         this.moveScores = {};
 
         let alpha = -1000000000000000000000000000.0;
         let beta = 100000000000000000000000000000.0;
-        const moveData = await this.alphaBetaGetMove(alpha, beta, this.maxDepth, rootState);
+        const moveData = this.alphaBetaGetMove(alpha, beta, this.maxDepth, rootState);
+        this.saveData.heuristic = this.heuristic;//Not sure if this even will show anything useful
+
+        this.saveData.board = rootState.getBoard();
         if (moveData[1] != null){
-            return moveData[1];
+            this.saveData.move = moveData[1];
+            return [moveData[1], this.saveData];
+
         } else {
-            const validMoves = await rootState.getValidMoves();
-            return validMoves[Math.floor(Math.random() * validMoves.length)];
+            const validMoves = rootState.getValidMoves();
+            const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+            this.saveData.move = randomMove;
+            return [randomMove, this.saveData];
         }
     }
 
-    alphaBetaGetMove = async (alpha, beta, depth, gameState) => {
-        let legalMoves = await this.getMoveOrder(await gameState.getValidMoves());
-        let d = this.maxDepth - (this.maxDepth - depth);
+    alphaBetaGetMove =  (alpha, beta, depth, gameState) => {
+        let legalMoves = this.getMoveOrder(gameState.getValidMoves());
         let bestMove = null;
 
         for (let i = 0; i < legalMoves.length; i++){
@@ -60,92 +67,90 @@ export default class FourInARow_AB{
             }
         }
 
-        while (legalMoves.length > 0){
-            let newState = await gameState.copyState()
-            console.log(legalMoves)
-            let move = legalMoves.shift();
+        let newState = gameState.copyState();
+
+        while (legalMoves.length !== 0){
+
+            let move = legalMoves[0];
+            legalMoves = legalMoves.slice(1,);
             let oldHash = this.hash;
-            let previousYX = gameState.previousYX;
-            let m = await newState.playMove(move);
+            let previousYX = newState.previousYX;
+            let m = newState.playMove(move);
             let y = m[0];
             let x = m[1];
 
-            this.updateHash(this.hash, this.zobristArr[y][x][gameState.getCurrentPlayer()], this.zobristArr[y][x][0]);
-            this.changePlayer(gameState);
+            this.updateHash(this.hash, this.zobristArr[y][x][newState.getCurrentPlayer()], this.zobristArr[y][x][0]);
+            this.changePlayer(newState);
+            let value = -this.alphaBetaDL( -beta, -alpha, depth - 1, newState);
 
-            let value = await this.alphaBetaDL( -beta, -alpha, depth - 1, newState);
-            value = -value;
             if (value > alpha){
                 alpha = value;
                 bestMove = move;
             }
 
+            console.log(value, move);
             this.moveScores[move.toString()] = value.toString();
             this.hash = oldHash;
-            newState.board = await this.undo(y, x, gameState, previousYX);
+            this.saveData.moveData.push([move, value]);
+            this.undo(y, x, newState, previousYX);
 
             if (value >= beta){
-                this.heuristic[move] += Math.pow(2, d);
+                let d = this.maxDepth - (this.maxDepth - depth);
+                this.heuristic[move] += Math.log(Math.pow(2, d));
                 return [beta, bestMove]
-            } else {
-                legalMoves = await this.getMoveOrder(legalMoves);
             }
+
+            legalMoves = this.getMoveOrder(legalMoves);
         }
         return [alpha, bestMove];
     }
 
-    alphaBetaDL = async(alpha, beta, depth, state) => {
+    alphaBetaDL = (alpha, beta, depth, state) => {
+
         let result = this.tt.lookup(this.hash);
         if (result !== undefined){
             return result;
         }
-
-
-        let d = this.maxDepth - (this.maxDepth - depth);
-
-        let legalMoves = await this.getMoveOrder(await state.getValidMoves());
-        if (await this.isTerminal(legalMoves, state) || depth === 0){
-            return - await this.evaluation(state);
+        let legalMoves = state.getValidMoves();
+        if ( this.isTerminal(legalMoves, state) || depth === 0){
+            return this.evaluation(state);
         }
+        legalMoves = this.getMoveOrder( state.getValidMoves());
+        let gameState =  state.copyState();
 
         while (legalMoves.length !== 0){
-            let gameState = await state.copyState();
-            console.log(legalMoves, gameState.board)
-            let move = legalMoves.shift();
+            let move = legalMoves[0];
             let oldHash = this.hash;
             let previousYX = gameState.previousYX;
-            let m = await gameState.playMove(move);
-            console.log(gameState.board, move)
+            let m =  gameState.playMove(move);
             let y = m[0];
             let x = m[1];
 
             this.updateHash(this.hash, this.zobristArr[y][x][gameState.getCurrentPlayer()], this.zobristArr[y][x][0]);
             this.changePlayer(gameState);
 
-            let value = await this.alphaBetaDL(-beta, -alpha, depth - 1, gameState);
-            value = -value;
+            let value =  -this.alphaBetaDL(-beta, -alpha, depth - 1, gameState);
             if (value > alpha){
                 alpha = value;
             }
 
             this.hash = oldHash;
-            gameState.board = await this.undo(y, x, gameState, previousYX);
+            this.undo(y, x, gameState, previousYX);
 
             if (value >= beta){
+                let d = this.maxDepth - (this.maxDepth - depth);
                 this.heuristic[move] += Math.pow(2,d);
                 return this.updateTT(beta);
             }
-
-            legalMoves = await this.getMoveOrder(legalMoves);
-
+            legalMoves = this.getMoveOrder(legalMoves.slice(1,));
         }
         return this.updateTT(alpha);
     }
 
-    getMoveOrder = async (legalMoves) => {
+    getMoveOrder =  (legalMoves) => {
         let tempHeuristic = [];
         for (let m = 0; m < legalMoves.length; m++){
-            tempHeuristic.push({num: m, val: this.heuristic[legalMoves[m]]});
+            tempHeuristic.push({num: legalMoves[m], val: this.heuristic[legalMoves[m]]});
         }
         tempHeuristic.sort(function (a, b) {return a.val - b.val}).reverse();
         return tempHeuristic.map((k, v) => {
@@ -157,19 +162,16 @@ export default class FourInARow_AB{
         gameState.setCurrentPlayer(3 - gameState.getCurrentPlayer());
     }
 
-    undo = async (y, x, gameState, previous) => {
+    undo =  (y, x, gameState, previous) => {
         this.changePlayer(gameState);
-        console.log(y,x)
         gameState.board[y][x] = 0;
-        console.log(gameState.board[y][x])
         gameState.previousYX = previous;
-        return gameState.board
     }
 
-    isTerminal = async (legalMoves, gameState) => {
+    isTerminal =  (legalMoves, gameState) => {
         if (gameState.previousYX !== null){
             this.changePlayer(gameState);
-            const winStatus = await gameState.checkWin(gameState.previousYX[1], gameState.previousYX[0]);
+            const winStatus =  gameState.checkWin(gameState.previousYX[1], gameState.previousYX[0]);
             this.changePlayer(gameState);
 
             if (winStatus[0] || legalMoves.length === 0){
@@ -179,7 +181,7 @@ export default class FourInARow_AB{
         return false;
     }
 
-    evaluation = async (gameState) => {
+    evaluation =  (gameState) => {
         let cp = gameState.getCurrentPlayer();
         let board = gameState.getBoard();
         let p1Score = 0;
@@ -200,22 +202,33 @@ export default class FourInARow_AB{
             p2Score += s[1];
         }
 
-        let s = await this.diagonalEvaluation(board, false);
+        let s =  this.diagonalEvaluation(board, false);
         p1Score += s[0];
         p2Score += s[1];
 
-        s = await this.diagonalEvaluation(board, true);
+        s =  this.diagonalEvaluation(board, true);
         p1Score += s[0];
         p2Score += s[1];
 
-        if (this.ComputerPlayer === 1){
-            return parseFloat((p1Score - p2Score * 1.1).toFixed(3));
+        if (cp === this.ComputerPlayer){
+            if (cp === 1){
+                if (p2Score >= 10000){p1Score = -p2Score}
+                return parseFloat((p1Score).toFixed(3))
+            } else {
+                if (p1Score >= 10000){p2Score = -p1Score}
+                return parseFloat((p2Score).toFixed(3));
+            }
         } else {
-            return parseFloat((p2Score - p1Score * 1.1).toFixed(3));
+            if (cp === 1){
+                if (p2Score >= 10000){p1Score = -p2Score}
+                return -parseFloat((p1Score).toFixed(3));
+            }
+            if (p1Score >= 10000){p2Score = -p1Score}
+            return -parseFloat((p2Score).toFixed(3));
         }
     }
 
-    diagonalEvaluation = async (board, isAnti) => {
+    diagonalEvaluation =  (board, isAnti) => {
         let p1Score = 0;
         let p2Score = 0;
         const lengths = ['4','5','6','6','5','4'];
@@ -282,7 +295,4 @@ export default class FourInARow_AB{
     getAddress = (arr) => {
         return arr.toString();
     }
-
-
-
 }

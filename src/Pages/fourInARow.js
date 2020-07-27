@@ -2,6 +2,7 @@ import React, { Component, createRef } from 'react';
 import {Card, Button, Col, Row, Modal} from 'antd';
 import Connect4Settings from "../Components/fourInARowSettings";
 import FourInARowGame from "../Components/fourInARowGame";
+import CPUStats from "../Components/computerStats";
 import 'antd/dist/antd.css';
 
 export default class FourInARow extends Component {
@@ -9,14 +10,31 @@ export default class FourInARow extends Component {
         super(props);
         this.state = {
             gutterSize: [8,20],
+            moveList: [],
         }
         this.gameRef = createRef();
+        this.cpuStatsRef = createRef();
     }
 
 
     setGameSettings = (values) =>{
         this.gameRef.current.newGame(values);
+        this.setState({...values});
     }
+
+    getMoveData = () => {
+        let moveData = this.gameRef.current.sendMoveData();
+        return [this.state, moveData[0], moveData[1]];
+    }
+
+    getLastMove = (move) => {
+        let mL = this.state.moveList;
+        mL.push(move);
+        this.setState({moveList: mL}, () => {
+            this.cpuStatsRef.current.formatMoveData(this.state.moveList, [this.state.player1, this.state.player2]);
+        });
+    }
+
 
     render() {
 
@@ -26,7 +44,6 @@ export default class FourInARow extends Component {
                 <Row
                     justify='center'
                     gutter={this.state.gutterSize}
-                    align='middle'
                 >
                     <Col className='gutter-row' span={6}>
                         <Card title='Game Settings'>
@@ -34,13 +51,11 @@ export default class FourInARow extends Component {
                         </Card>
                     </Col>
                     <Col className='gutter-row' span={10}>
-                        <FourInARowGame ref={this.gameRef}/>
+                        <FourInARowGame ref={this.gameRef} getLastMove={this.getLastMove}/>
                     </Col>
                     <Col className='gutter-row' span={6}>
-                        <Card title='Computer Decisions?'>
-                            <Button>
-                                hello world
-                            </Button>
+                        <Card title='Computer Stats'>
+                            <CPUStats getMoveData={this.getMoveData} ref={this.cpuStatsRef}/>
                         </Card>
                     </Col>
                 </Row>
