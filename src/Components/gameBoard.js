@@ -11,13 +11,9 @@ export default class GameBoard extends Component {
         }
     }
 
-    setCurrentPlayer = (p) => {
+    setCurrentPlayer = async(p) => {
         this.setState({currentPlayer: p});
     }
-
-    // shouldComponentUpdate(nextProps){
-    //     return this.props.currentPlayer !== nextProps.currentPlayer;
-    // }
 
     decideSquareColor = (value) => {
         if (value === 1){

@@ -43,6 +43,7 @@ export default class FourInARow_AB{
         this.saveData.heuristic = this.heuristic;//Not sure if this even will show anything useful
 
         this.saveData.board = rootState.getBoard();
+        message.success({content: 'Move Found', key:'search'}, 1);
         if (moveData[1] != null){
             this.saveData.move = moveData[1];
             return [moveData[1], this.saveData];

@@ -23,7 +23,7 @@ export default class FourInARowGame extends Component {
             cpu2: null,
             winner: null,
             typeOfWin: null,
-            gutterSize: [8,8]
+            gutterSize: [8,8],
         }
         this.fourInARowGame = new Four_In_A_Row(generateDiagonals(), generateAntiDiagonals());
         this.gameBoardRef = createRef();
@@ -32,18 +32,29 @@ export default class FourInARowGame extends Component {
     }
 
     componentDidUpdate(){
-        if (this.state.currentPlayer === 1 && this.state.player1 === 'cpu'){
-            message.loading({content: `Computer ${this.fourInARowGame.getCurrentPlayer()} is searching....`,
-                key:'search' }, 0);
-            this.computerTurn(this.state.cpu1);
+        if (this.state.currentPlayer === 1 && this.state.player1 === 'cpu' ){
+            if (this.state.currentPlayer === this.fourInARowGame.getCurrentPlayer()){
+                message.loading({content: `Computer ${this.state.currentPlayer} is searching....`,
+                    key:'search' }, 0);
+
+                setTimeout(() => {
+                    this.computerTurn(this.state.cpu1)}, 1000);
+            }
+
         } else if (this.state.currentPlayer === 2 && this.state.player2 === 'cpu'){
-            message.loading({content: `Computer ${this.fourInARowGame.getCurrentPlayer()} is searching....`,
-                key:'search' }, 0);
-            this.computerTurn(this.state.cpu2);
+            if (this.state.currentPlayer === this.fourInARowGame.getCurrentPlayer()){
+                message.loading({content: `Computer ${this.state.currentPlayer} is searching....`,
+                    key:'search' }, 0);
+
+                setTimeout( () => {
+                    this.computerTurn(this.state.cpu2)}, 1000);
+
+            }
         }
     }
 
     computerTurn = (cpu) => {
+        console.log(this.state)
         if (this.state.winner === null){
             let searchData = cpu.findMove(this.fourInARowGame);
             if (this.fourInARowGame.getCurrentPlayer() === 1){
@@ -53,46 +64,58 @@ export default class FourInARowGame extends Component {
             }
 
             let move = searchData[0];
-            this.setMove(move);
+            this.setMove(move, 'computer');
         }
 
     }
 
     newGame = (values) => {
-        this.setState({...values, currentPlayer: null, cpu1: null, cpu2: null}, () => {
-            this.fourInARowGame.resetGame();
-            console.log(this.state);
-            message.success("A new game has started!", 1);
-            this.setState({cpu1: new FourInARow_AB(this.difficultyDepth(this.state.cpu1Diff), moveScores),
-                cpu2: new FourInARow_AB(this.difficultyDepth(this.state.cpu2Diff), moveScores)}, () => {
-                this.setState({currentPlayer: this.fourInARowGame.getCurrentPlayer(),
-                    winner: null, typeOfWin: null, gameClickable: true
-                });
+        this.setState({...values, currentPlayer: null, cpu1: null, cpu2: null},
+            () => {
+                        this.fourInARowGame.resetGame();
+                        console.log(this.state);
+                        message.success("A new game has started!", 1);
+
+                this.setState({cpu1: new FourInARow_AB(this.difficultyDepth(this.state.cpu1Diff), moveScores),
+                                    cpu2: new FourInARow_AB(this.difficultyDepth(this.state.cpu2Diff), moveScores)},
+                    () => {
+                            this.setState({currentPlayer: this.fourInARowGame.getCurrentPlayer(),
+                                                winner: null, typeOfWin: null, gameClickable: true
+                            });
+                 });
             });
-        });
     }
 
     difficultyDepth = (val) =>{
         if (val === 'easy'){
-            return 1;
+            return 3;
         } else if (val === 'medium'){
             return 5;
         }
-        return 11;
+        return 12;
     }
 
     playATurn = (move) => {
         if ((this.state.currentPlayer === 1 && this.state.player1 === 'human' ) ||
             (this.state.currentPlayer === 2 && this.state.player2 === 'human')){
-            this.setMove(move);
+            this.setMove(move, 'player', this.state.currentPlayer);
         }
     }
 
-    setMove = (move) =>{
+    setMove = (move, playerType) => {
+        if (!this.checkMoveSender(playerType)){
+            return
+        }
         let isLegalTurn = this.fourInARowGame.turn(move);
         console.log(isLegalTurn);
 
         if (isLegalTurn) {
+            this.setState({
+                currentPlayer: this.fourInARowGame.getCurrentPlayer(),
+            });
+
+            this.gameBoardRef.current.setCurrentPlayer(this.fourInARowGame.getCurrentPlayer());
+
             if (this.fourInARowGame.getCurrentPlayer() === 1){
                 this.p2Data.push(move);
             } else {
@@ -100,7 +123,6 @@ export default class FourInARowGame extends Component {
             }
             this.props.getLastMove(move);
             let isWin = this.fourInARowGame.getWinStatus();
-            this.gameBoardRef.current.setCurrentPlayer(this.fourInARowGame.getCurrentPlayer());
 
             if (isWin) {
                 this.setState({
@@ -111,9 +133,7 @@ export default class FourInARowGame extends Component {
                     this.winNotification();
                 });
             }
-            this.setState({
-                currentPlayer: this.fourInARowGame.getCurrentPlayer(),
-            });
+
 
             if (this.fourInARowGame.getValidMoves().length === 0){
                 this.setState({gameClickable: false});
@@ -121,6 +141,23 @@ export default class FourInARowGame extends Component {
             }
         }
     }
+
+    checkMoveSender = (pType) => {
+        if (pType === 'computer' && this.fourInARowGame.getCurrentPlayer() === 1 && this.state.player1 === 'cpu'){
+            return true;
+        }
+        if (pType === 'computer' && this.fourInARowGame.getCurrentPlayer() === 2 && this.state.player2 === 'cpu'){
+            return true;
+        }
+        if (pType === 'player'){
+            return true;
+        }
+        return false
+
+    }
+
+
+
 
     drawNotification = () => {
         notification.error({
@@ -131,12 +168,16 @@ export default class FourInARowGame extends Component {
     }
 
     winNotification = () => {
+
         let t = undefined;
         if (this.state.winner === 1){
             t = this.state.player1;
         } else {
             t = this.state.player2;
         }
+
+        message.error({content: 'Game has ended.', key:'search'}, 1);
+
         notification.info({
             message: `Winner is: Player ${this.state.winner}`,
             description: (

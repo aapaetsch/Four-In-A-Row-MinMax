@@ -12,6 +12,11 @@ export default class CPUStats extends Component {
         }
     }
 
+    newGame = () =>{
+        this.setState({moveData: [], showLoading: true});
+    }
+
+
     formatMoveData = (data, whoCPU) => {
         console.log(data);
         let p1 = false;

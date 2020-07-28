@@ -20,6 +20,7 @@ export default class FourInARow extends Component {
     setGameSettings = (values) =>{
         this.gameRef.current.newGame(values);
         this.setState({...values});
+        this.cpuStatsRef.current.newGame();
     }
 
     getMoveData = () => {
