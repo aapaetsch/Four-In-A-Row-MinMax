@@ -213,18 +213,18 @@ export default class FourInARow_AB{
 
         if (cp === this.ComputerPlayer){
             if (cp === 1){
-                if (p2Score >= 10000){p1Score = -p2Score}
+                if (p2Score >= 10000 && p1Score < 10000){p1Score = -p2Score}
                 return parseFloat((p1Score).toFixed(3))
             } else {
-                if (p1Score >= 10000){p2Score = -p1Score}
+                if (p1Score >= 10000 && p2Score < 10000 ){p2Score = -p1Score}
                 return parseFloat((p2Score).toFixed(3));
             }
         } else {
             if (cp === 1){
-                if (p2Score >= 10000){p1Score = -p2Score}
+                if (p2Score >= 10000 && p1Score < 10000){p1Score = -p2Score}
                 return -parseFloat((p1Score).toFixed(3));
             }
-            if (p1Score >= 10000){p2Score = -p1Score}
+            if (p1Score >= 10000 && p2Score < 10000){p2Score = -p1Score}
             return -parseFloat((p2Score).toFixed(3));
         }
     }
