@@ -8,7 +8,8 @@ export default class CPUStats extends Component {
         this.state = {
             moveData: [],
             showLoading: true,
-
+            player1: false,
+            player2: false,
         }
     }
 

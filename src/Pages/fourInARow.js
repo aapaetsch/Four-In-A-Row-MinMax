@@ -54,11 +54,11 @@ export default class FourInARow extends Component {
                     <Col className='gutter-row' span={10}>
                         <FourInARowGame ref={this.gameRef} getLastMove={this.getLastMove}/>
                     </Col>
-                    <Col className='gutter-row' span={6}>
-                        <Card title='Computer Stats'>
-                            <CPUStats getMoveData={this.getMoveData} ref={this.cpuStatsRef}/>
-                        </Card>
-                    </Col>
+                    {/*<Col className='gutter-row' span={6}>*/}
+                    {/*    <Card title='Computer Stats'>*/}
+                    {/*        <CPUStats getMoveData={this.getMoveData} ref={this.cpuStatsRef}/>*/}
+                    {/*    </Card>*/}
+                    {/*</Col>*/}
                 </Row>
             </div>
         );
