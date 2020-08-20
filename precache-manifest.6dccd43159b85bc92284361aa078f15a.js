@@ -1,6 +1,6 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "d2e9e752f9e2826efef6a7e67bd5d5bf",
+    "revision": "95c66ca900f6178978f3d1f701ddf9c9",
     "url": "/Four-In-A-Row-MinMax/index.html"
   },
   {
@@ -8,7 +8,7 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/Four-In-A-Row-MinMax/static/css/2.fc5a9450.chunk.css"
   },
   {
-    "revision": "6de90a63494393c5fe2a",
+    "revision": "0f619a93bb7b7727fda4",
     "url": "/Four-In-A-Row-MinMax/static/css/main.e13f2c73.chunk.css"
   },
   {
@@ -20,8 +20,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/Four-In-A-Row-MinMax/static/js/2.c5f75f95.chunk.js.LICENSE.txt"
   },
   {
-    "revision": "6de90a63494393c5fe2a",
-    "url": "/Four-In-A-Row-MinMax/static/js/main.fba441b5.chunk.js"
+    "revision": "0f619a93bb7b7727fda4",
+    "url": "/Four-In-A-Row-MinMax/static/js/main.3e4082f7.chunk.js"
   },
   {
     "revision": "7f8506b4e6c943a8f5bb",
